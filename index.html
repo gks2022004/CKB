@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CKB Marketing Agency — Order & Refund Status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CKB MARKETING AGENCY — STATUS TRACKER
+   ============================================================ */
+:root{
+  --ink:#16211f;          /* deep pine ink */
+  --pine:#0e4f46;         /* brand pine green */
+  --pine-deep:#0a3a34;
+  --mist:#eef4f2;         /* page background */
+  --paper:#ffffff;
+  --line:#d6e2de;
+  --amber:#e8a13c;        /* accent: tag / highlight */
+  --muted:#5d6f6b;
+  --ok:#1d7a4f;  --ok-bg:#e2f3e9;
+  --warn:#9a6b12; --warn-bg:#fcf0d8;
+  --bad:#a33333;  --bad-bg:#fbe6e6;
+  --info:#2c5f9e; --info-bg:#e4eefb;
+  --radius:14px;
+  --shadow:0 10px 30px rgba(14,79,70,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--mist);
+  color:var(--ink);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--amber);color:var(--ink)}
+
+/* ---------- header ---------- */
+header{
+  background:var(--pine);
+  color:#fff;
+  position:relative;
+  overflow:hidden;
+}
+header::after{ /* subtle diagonal texture */
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.03) 0 2px,transparent 2px 14px);
+  pointer-events:none;
+}
+.nav{
+  max-width:1060px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 24px;position:relative;z-index:1;
+}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+.brand-mark{
+  width:42px;height:42px;border-radius:10px;
+  background:var(--amber);color:var(--pine-deep);
+  display:grid;place-items:center;
+  font-family:'Bricolage Grotesque';font-weight:800;font-size:17px;letter-spacing:-.5px;
+}
+.brand-name{font-family:'Bricolage Grotesque';font-weight:700;font-size:19px;letter-spacing:.2px}
+.brand-name small{display:block;font-family:'Inter';font-weight:500;font-size:11px;opacity:.75;letter-spacing:2.5px;text-transform:uppercase}
+.nav-tag{
+  font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  border:1px solid rgba(255,255,255,.3);border-radius:99px;padding:7px 16px;opacity:.9;
+}
+.hero{
+  max-width:1060px;margin:0 auto;
+  padding:54px 24px 150px;position:relative;z-index:1;text-align:center;
+}
+.hero h1{
+  font-family:'Bricolage Grotesque';font-weight:800;
+  font-size:clamp(30px,5vw,52px);line-height:1.08;letter-spacing:-1px;
+}
+.hero h1 em{font-style:normal;color:var(--amber)}
+.hero p{margin-top:14px;font-size:16px;color:rgba(255,255,255,.78);max-width:520px;margin-left:auto;margin-right:auto}
+
+/* ---------- search panel ---------- */
+.search-wrap{max-width:680px;margin:-92px auto 0;padding:0 24px;position:relative;z-index:2}
+.search-card{
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);padding:26px;
+}
+.search-card label{
+  display:block;font-size:12px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:10px;
+}
+.search-row{display:flex;gap:10px}
+.search-row input{
+  flex:1;min-width:0;
+  font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;
+  padding:14px 16px;border:1.5px solid var(--line);border-radius:10px;
+  background:var(--mist);color:var(--ink);outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+.search-row input:focus{border-color:var(--pine);box-shadow:0 0 0 3px rgba(14,79,70,.12)}
+.search-row button{
+  font-family:'Inter';font-weight:600;font-size:15px;
+  padding:14px 26px;border:none;border-radius:10px;cursor:pointer;
+  background:var(--pine);color:#fff;
+  transition:background .15s, transform .1s;
+  white-space:nowrap;
+}
+.search-row button:hover{background:var(--pine-deep)}
+.search-row button:active{transform:scale(.98)}
+.search-row button:focus-visible,.search-row input:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.search-hint{margin-top:12px;font-size:13px;color:var(--muted)}
+
+/* ---------- states ---------- */
+.state{max-width:680px;margin:26px auto 0;padding:0 24px}
+.msg{
+  background:var(--paper);border:1px dashed var(--line);border-radius:var(--radius);
+  padding:34px 26px;text-align:center;color:var(--muted);font-size:15px;
+}
+.msg strong{color:var(--ink)}
+.msg.error{border-color:#e7b9b9;background:#fdf7f7;color:var(--bad)}
+.spinner{
+  width:26px;height:26px;border-radius:50%;margin:0 auto 12px;
+  border:3px solid var(--line);border-top-color:var(--pine);
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- result ticket (signature element) ---------- */
+.ticket{
+  max-width:680px;margin:26px auto 0;padding:0 24px;
+  animation:rise .45s cubic-bezier(.2,.8,.3,1);
+}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ticket-card{
+  background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:var(--shadow);overflow:hidden;
+}
+.ticket-top{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+  padding:22px 26px;background:var(--pine);color:#fff;
+}
+.ticket-top .who h2{font-family:'Bricolage Grotesque';font-weight:700;font-size:22px;letter-spacing:-.3px}
+.ticket-top .who span{font-size:13px;opacity:.75}
+.ticket-id{
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);
+  padding:7px 13px;border-radius:8px;letter-spacing:.5px;
+}
+/* perforation between header and body — receipt feel */
+.perf{
+  height:0;border-top:2px dashed var(--line);position:relative;background:var(--paper);
+}
+.perf::before,.perf::after{
+  content:"";position:absolute;top:-11px;width:22px;height:22px;border-radius:50%;
+  background:var(--mist);border:1px solid var(--line);
+}
+.perf::before{left:-12px}
+.perf::after{right:-12px}
+.ticket-body{padding:24px 26px 10px}
+.status-line{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding-bottom:20px;border-bottom:1px solid var(--line);margin-bottom:6px;
+}
+.status-line .lbl{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  font-weight:600;font-size:14px;padding:8px 18px;border-radius:99px;
+}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.badge.ok{background:var(--ok-bg);color:var(--ok)}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+.badge.bad{background:var(--bad-bg);color:var(--bad)}
+.badge.info{background:var(--info-bg);color:var(--info)}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;}
+.field{
+  padding:16px 4px;border-bottom:1px solid var(--line);
+}
+.field:nth-last-child(-n+2){border-bottom:none}
+.field .k{font-size:11.5px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.field .v{font-size:15.5px;font-weight:500;color:var(--ink);word-break:break-word}
+.field .v.money{font-family:'JetBrains Mono',monospace;font-weight:600}
+.field .v.empty{color:#b7c4c0;font-weight:400}
+.ticket-foot{
+  padding:16px 26px;background:var(--mist);border-top:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--muted);
+}
+.ticket-foot b{color:var(--pine)}
+
+/* ---------- footer ---------- */
+footer{
+  margin-top:80px;padding:34px 24px;text-align:center;
+  font-size:13px;color:var(--muted);border-top:1px solid var(--line);
+}
+footer b{color:var(--pine);font-family:'Bricolage Grotesque'}
+
+@media (max-width:560px){
+  .search-row{flex-direction:column}
+  .field-grid{grid-template-columns:1fr}
+  .field:nth-last-child(-n+2){border-bottom:1px solid var(--line)}
+  .field:last-child{border-bottom:none}
+  .ticket-top{flex-direction:column}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="brand" href="#">
+      <span class="brand-mark">CKB</span>
+      <span class="brand-name">CKB Marketing Agency<small>Client Status Portal</small></span>
+    </a>
+    <span class="nav-tag">Live tracking</span>
+  </div>
+  <div class="hero">
+    <h1>Track your order<br>&amp; refund <em>in seconds</em></h1>
+    <p>Enter the ID we shared with you to see your order details, payment summary and current refund status — always up to date.</p>
+  </div>
+</header>
+
+<div class="search-wrap">
+  <div class="search-card">
+    <label for="idInput">Order ID</label>
+    <div class="search-row">
+      <input id="idInput" type="text" placeholder="e.g. CKB-1024" autocomplete="off" spellcheck="false">
+      <button id="searchBtn" type="button">Check status</button>
+    </div>
+    <p class="search-hint">Lost your ID? Contact CKB Marketing Agency support and we'll resend it.</p>
+  </div>
+</div>
+
+<div class="state" id="stateBox" hidden></div>
+<div class="ticket" id="ticketBox" hidden></div>
+
+<footer>
+  © <span id="yr"></span> <b>CKB Marketing Agency</b> · All records are updated by our team in real time.
+</footer>
+
+<script>
+/* ================= ADMIN CONFIG =================
+   This is your published Google Sheet link (CSV format).
+   Only YOU can edit the sheet — clients can only view results here.
+   If you ever republish a different sheet, replace the URL below
+   (take your "Publish to web" link and change /pubhtml to /pub?output=csv).
+================================================= */
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTXpErMdr__ol3xBOczcGCdRUxA4nzeWZNuRpsQ_blJMN5Gix0xQhQxggBdepQ1lzPwcW33b-swEDHj/pub?output=csv";
+
+/* Expected column headers in row 1 of the sheet (any order):
+   Order Date | Refund Form Date | ID | Product Name | Name |
+   Total Amount | Paying Amount | Tag Date | Refund Date | Status
+*/
+
+const FIELDS = [
+  {key:"order date",        label:"Order Date"},
+  {key:"refund form date",  label:"Refund Form Date"},
+  {key:"product name",      label:"Product Name"},
+  {key:"total amount",      label:"Total Amount", money:true},
+  {key:"paying amount",     label:"Paying Amount", money:true},
+  {key:"tag date",          label:"Tag Date"},
+  {key:"refund date",       label:"Refund Date"},
+];
+
+const stateBox  = document.getElementById("stateBox");
+const ticketBox = document.getElementById("ticketBox");
+const input     = document.getElementById("idInput");
+const btn       = document.getElementById("searchBtn");
+document.getElementById("yr").textContent = new Date().getFullYear();
+
+btn.addEventListener("click", search);
+input.addEventListener("keydown", e => { if(e.key === "Enter") search(); });
+
+function showState(html, cls=""){
+  ticketBox.hidden = true;
+  stateBox.hidden = false;
+  stateBox.innerHTML = `<div class="msg ${cls}">${html}</div>`;
+}
+function hideStates(){ stateBox.hidden = true; }
+
+/* --- tiny CSV parser (handles quoted commas) --- */
+function parseCSV(text){
+  const rows=[]; let row=[], cur="", inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else inQ=false; }
+      else cur+=c;
+    }else{
+      if(c==='"') inQ=true;
+      else if(c===','){ row.push(cur); cur=""; }
+      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=""; }
+      else if(c!=='\r') cur+=c;
+    }
+  }
+  if(cur!=="" || row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r => r.some(c => c.trim()!==""));
+}
+
+function statusClass(s){
+  const t = s.toLowerCase();
+  if(/refunded|completed|done|paid|success|approved/.test(t)) return "ok";
+  if(/pending|processing|in progress|review|waiting|hold/.test(t)) return "warn";
+  if(/rejected|cancelled|canceled|failed|declined/.test(t)) return "bad";
+  return "info";
+}
+
+async function search(){
+  const id = input.value.trim();
+  if(!id){ showState("Please enter your Order ID first."); input.focus(); return; }
+
+  showState('<div class="spinner"></div>Checking the latest records…');
+
+  const url = `${SHEET_CSV_URL}&t=${Date.now()}`;
+
+  let rows;
+  try{
+    const res = await fetch(url);
+    if(!res.ok) throw new Error();
+    rows = parseCSV(await res.text());
+  }catch(e){
+    showState("<strong>Couldn't load records.</strong> Please check your internet connection, or contact CKB Marketing Agency if this keeps happening.", "error");
+    return;
+  }
+
+  if(!rows.length){ showState("No records found in the system yet.", "error"); return; }
+
+  const headers = rows[0].map(h => h.trim().toLowerCase());
+  const idCol = headers.indexOf("id");
+  if(idCol === -1){
+    showState("<strong>Sheet format issue:</strong> no column named <strong>ID</strong> was found in row 1 of the sheet.", "error");
+    return;
+  }
+
+  const match = rows.slice(1).find(r => (r[idCol]||"").trim().toLowerCase() === id.toLowerCase());
+  if(!match){
+    showState(`No record found for ID <strong>${escapeHTML(id)}</strong>.<br>Please double-check the ID, or contact our support team.`);
+    return;
+  }
+
+  const get = name => {
+    const i = headers.indexOf(name);
+    return i === -1 ? "" : (match[i]||"").trim();
+  };
+
+  const name    = get("name") || "Customer";
+  const realId  = (match[idCol]||"").trim();
+  const status  = get("status") || "—";
+  const sc      = statusClass(status);
+
+  const fieldsHTML = FIELDS.map(f => {
+    const v = get(f.key);
+    return `<div class="field">
+      <div class="k">${f.label}</div>
+      <div class="v ${f.money?'money':''} ${v?'':'empty'}">${v ? escapeHTML(v) : "—"}</div>
+    </div>`;
+  }).join("");
+
+  hideStates();
+  ticketBox.hidden = false;
+  ticketBox.innerHTML = `
+    <div class="ticket-card">
+      <div class="ticket-top">
+        <div class="who">
+          <h2>${escapeHTML(name)}</h2>
+          <span>Order &amp; refund record</span>
+        </div>
+        <div class="ticket-id">ID&nbsp;·&nbsp;${escapeHTML(realId)}</div>
+      </div>
+      <div class="perf"></div>
+      <div class="ticket-body">
+        <div class="status-line">
+          <span class="lbl">Current status</span>
+          <span class="badge ${sc}"><span class="dot"></span>${escapeHTML(status)}</span>
+        </div>
+        <div class="field-grid">${fieldsHTML}</div>
+      </div>
+      <div class="ticket-foot">
+        <span>Checked just now · data refreshes automatically</span>
+        <span><b>CKB Marketing Agency</b></span>
+      </div>
+    </div>`;
+  ticketBox.scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function escapeHTML(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
+</body>
+</html>
