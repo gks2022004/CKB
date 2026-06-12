@@ -226,7 +226,7 @@ footer b{color:var(--pine);font-family:'Bricolage Grotesque'}
   <div class="search-card">
     <label for="idInput">Order ID</label>
     <div class="search-row">
-      <input id="idInput" type="text" placeholder="e.g. CKB-1024" autocomplete="off" spellcheck="false">
+      <input id="idInput" type="text" placeholder="Enter your Order ID" autocomplete="off" spellcheck="false">
       <button id="searchBtn" type="button">Check status</button>
     </div>
     <p class="search-hint">Lost your ID? Contact CKB Marketing Agency support and we'll resend it.</p>
@@ -249,20 +249,33 @@ footer b{color:var(--pine);font-family:'Bricolage Grotesque'}
 ================================================= */
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRr_8Ddko3MEnyL-c58f-aB5xMgmgQi9RrP5o-1_EMDQQP_s0dsGUpTbaOVaPRkEDIzUtZO85rEYF4b/pub?output=csv";
 
-/* Expected column headers in row 1 of the sheet (any order):
-   Order Date | Refund Form Date | ID | Product Name | Name |
-   Total Amount | Paying Amount | Tag Date | Refund Date | Status
+/* Sheet columns (row 1 headers):
+   Order Date | Reviewer Name | Product Name | Order Id | Deal Type |
+   Platform | Product Amonut | Less Amount | Refund Form Date |
+   Purchase date | Order id | Review Link | Totat Amount | Upi Id |
+   Mediater Name | Status | Tag Date | Refund Date
 */
 
 const FIELDS = [
   {key:"order date",        label:"Order Date"},
+  {key:"purchase date",     label:"Purchase Date"},
   {key:"refund form date",  label:"Refund Form Date"},
+  {key:"reviewer name",     label:"Reviewer Name"},
   {key:"product name",      label:"Product Name"},
-  {key:"total amount",      label:"Total Amount", money:true},
-  {key:"paying amount",     label:"Paying Amount", money:true},
+  {key:"deal type",         label:"Deal Type"},
+  {key:"platform",          label:"Platform"},
+  {key:"product amonut",    label:"Product Amount", money:true},
+  {key:"less amount",       label:"Less Amount", money:true},
+  {key:"totat amount",      label:"Total Amount", money:true},
+  {key:"upi id",            label:"UPI ID"},
+  {key:"mediater name",     label:"Mediator Name"},
+  {key:"review link",       label:"Review Link"},
   {key:"tag date",          label:"Tag Date"},
   {key:"refund date",       label:"Refund Date"},
 ];
+
+/* ID column — sheet uses "Order Id" (row 1) or "Order id" (row 2 duplicate header)
+   We search both spellings below */
 
 const stateBox  = document.getElementById("stateBox");
 const ticketBox = document.getElementById("ticketBox");
@@ -328,24 +341,31 @@ async function search(){
   if(!rows.length){ showState("No records found in the system yet.", "error"); return; }
 
   const headers = rows[0].map(h => h.trim().toLowerCase());
-  const idCol = headers.indexOf("id");
+
+  /* support both "Order Id" and "Order id" spellings in sheet */
+  let idCol = headers.indexOf("order id");
+  if(idCol === -1) idCol = headers.indexOf("order id");   // same after toLowerCase
   if(idCol === -1){
-    showState("<strong>Sheet format issue:</strong> no column named <strong>ID</strong> was found in row 1 of the sheet.", "error");
+    /* fallback: find any header containing "order" and "id" */
+    idCol = headers.findIndex(h => h.includes("order") && h.includes("id"));
+  }
+  if(idCol === -1){
+    showState("<strong>Sheet format issue:</strong> no <strong>Order Id</strong> column found in row 1.", "error");
     return;
   }
 
   const match = rows.slice(1).find(r => (r[idCol]||"").trim().toLowerCase() === id.toLowerCase());
   if(!match){
-    showState(`No record found for ID <strong>${escapeHTML(id)}</strong>.<br>Please double-check the ID, or contact our support team.`);
+    showState(`No record found for Order ID <strong>${escapeHTML(id)}</strong>.<br>Please double-check the ID, or contact our support team.`);
     return;
   }
 
-  const get = name => {
-    const i = headers.indexOf(name);
+  const get = key => {
+    const i = headers.indexOf(key);
     return i === -1 ? "" : (match[i]||"").trim();
   };
 
-  const name    = get("name") || "Customer";
+  const name    = get("reviewer name") || "Customer";
   const realId  = (match[idCol]||"").trim();
   const status  = get("status") || "—";
   const sc      = statusClass(status);
